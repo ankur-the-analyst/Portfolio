@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1024">
     <title>Ankur Madan- Startup & AI Enthusiast | Customer Success Expert</title>
     <meta name="description" content="Startup enthusiast and AI expert specializing in customer success, market research, and business analytics. Passionate about transforming data into strategic insights and driving growth through innovative solutions." />
     <meta name="keywords" content="startup, AI, customer success, market research, analytics, salesforce, business intelligence, data science, BRD, FRD" />
@@ -186,6 +185,113 @@
     <span class="font-semibold text-gray-700">Customer Success</span>
   </div>
 </div>
+
+</section>
+
+<!-- CSS (small scoped block) -->
+<style>
+  /* Buttons entrance animation (you can tweak durations/delays here) */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Buttons container animates in first */
+  .buttons-container {
+    animation: fadeUp 700ms cubic-bezier(.2,.9,.3,1) forwards;
+    animation-delay: 200ms; /* <- change this to control when buttons start */
+    will-change: opacity, transform;
+  }
+
+  /* Highlights start hidden (no layout jump) */
+  .highlights-container {
+    --card-gap: 20px;
+    opacity: 1; /* container remains, cards are hidden individually */
+  }
+
+  .highlight-card {
+    opacity: 0;
+    transform: translateY(10px);
+    will-change: opacity, transform;
+  }
+
+  /* When JS adds .animate-in, each card uses its --delay var */
+  .highlight-card.animate-in {
+    animation: fadeUp 520ms cubic-bezier(.2,.9,.3,1) forwards;
+    animation-delay: var(--delay, 0ms);
+  }
+
+  /* Accessibility: if user prefers reduced motion, reveal everything immediately */
+  @media (prefers-reduced-motion: reduce) {
+    .buttons-container,
+    .highlight-card {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+</style>
+
+<!-- JS (listens for buttons' animationend OR uses computed-duration fallback, then staggers reveals) -->
+<script>
+  (function () {
+    function parseTimeToMs(timeStr) {
+      if (!timeStr) return 0;
+      timeStr = timeStr.trim();
+      if (timeStr.endsWith('ms')) return parseFloat(timeStr);
+      if (timeStr.endsWith('s')) return parseFloat(timeStr) * 1000;
+      return parseFloat(timeStr) || 0;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const buttons = document.querySelector('.buttons-container');
+      const cards = Array.from(document.querySelectorAll('.highlight-card'));
+
+      if (!buttons || cards.length === 0) return;
+
+      // If user prefers reduced motion, immediately reveal (no waits)
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        cards.forEach((c) => c.classList.add('animate-in'));
+        cards.forEach((c, i) => c.style.setProperty('--delay', `${i * 90}ms`));
+        return;
+      }
+
+      let fired = false;
+
+      function revealCards() {
+        if (fired) return;
+        fired = true;
+        cards.forEach((card, i) => {
+          // set stagger delay per card
+          card.style.setProperty('--delay', `${i * 110}ms`);
+          // tiny tick so CSS var is applied before class toggled
+          setTimeout(() => card.classList.add('animate-in'), 10);
+        });
+      }
+
+      // Prefer listening to the animationend event on the buttons container
+      function onButtonsAnimationEnd(e) {
+        // ensure we react to container's animation (not child's) — target === buttons
+        if (e.target !== buttons) return;
+        revealCards();
+        buttons.removeEventListener('animationend', onButtonsAnimationEnd);
+        clearTimeout(fallbackTimer);
+      }
+
+      buttons.addEventListener('animationend', onButtonsAnimationEnd);
+
+      // Fallback: compute (animation-delay + duration) from computed style and reveal after that + small buffer
+      const cs = getComputedStyle(buttons);
+      const delayStr = (cs.animationDelay || '').split(',')[0];
+      const durStr = (cs.animationDuration || '').split(',')[0];
+      const totalMs = parseTimeToMs(delayStr) + parseTimeToMs(durStr);
+
+      const fallbackTimer = setTimeout(() => {
+        revealCards();
+      }, Math.max(0, totalMs + 40));
+    });
+  })();
+</script>
 
    
     </section>
